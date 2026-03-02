@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnoTech | AI Strategic Intel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            display: inline-block;
+            animation: marquee 50s linear infinite;
+        }
+
+        .hover-pause:hover {
+            animation-play-state: paused;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 font-sans">
+
+    <nav class="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg"><i class="fas fa-brain"></i></div>
+            <h1 class="text-xl font-bold">InnoTech<span class="text-indigo-600">.ai</span></h1>
+        </div>
+        <div class="flex gap-6 items-center">
+            <button onclick="showSection('search')" class="text-sm font-medium hover:text-indigo-600">Dashboard</button>
+            <button onclick="showSection('bi-dashboard')" class="text-sm font-medium hover:text-indigo-600">BI
+                Report</button>
+            <button onclick="showSection('profile')" class="text-sm font-medium hover:text-indigo-600">My Project
+                DNA</button>
+            <button onclick="showSection('category')" class="text-sm font-medium hover:text-indigo-600">Similar
+                Companies</button>
+
+        </div>
+    </nav>
+
+    <div class="bg-slate-900 text-white py-2 overflow-hidden whitespace-nowrap border-b border-indigo-500/30">
+        <div id="ticker-content" class="inline-block animate-marquee hover-pause">
+            <span class="mx-4 text-xs font-bold text-indigo-400">LIVE MARKET INTEL:</span>
+            <span id="news-items" class="text-xs uppercase tracking-wider">Gathering latest tech headlines...</span>
+        </div>
+    </div>
+
+    <main class="max-w-6xl mx-auto py-10 px-6">
+
+        <section id="search-section" class="space-y-8">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[250px]">
+                    <label class="text-xs font-bold uppercase text-slate-400 mb-2 block">Company to Analyze</label>
+                    <input id="compName" type="text" placeholder="e.g. OpenAI, Tesla, Stripe..."
+                        class="w-full bg-slate-50 border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="w-48">
+                    <label class="text-xs font-bold uppercase text-slate-400 mb-2 block">Filter: Lookback</label>
+                    <select id="lookbackDays"
+                        class="w-full bg-slate-50 border p-3 rounded-xl outline-none cursor-pointer">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 1 Month</option>
+                        <option value="180">Last 6 Months</option>
+                        <option value="365">Last 1 Year</option>
+                    </select>
+                </div>
+                <button onclick="analyzeAll()" id="analyzeBtn"
+                    class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">Run
+                    Deep Analysis</button>
+            </div>
+
+            <div id="results" class="hidden space-y-6">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 bg-white p-8 rounded-3xl border shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 id="resTitle" class="text-3xl font-black text-slate-800"></h3>
+                                <p id="resBio" class="text-slate-500 mt-2 leading-relaxed"></p>
+                            </div>
+                            <div id="sentimentTag"
+                                class="px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"></div>
+                        </div>
+                    </div>
+                    <div class="bg-indigo-600 text-white p-8 rounded-3xl shadow-xl flex flex-col justify-center">
+                        <h4 class="text-indigo-200 text-xs font-bold uppercase tracking-widest">Strategic Prediction
+                        </h4>
+                        <p id="resPrediction" class="mt-4 font-medium leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 space-y-6">
+                        <div class="bg-white p-8 rounded-3xl border shadow-sm">
+                            <h4 id="periodHeader" class="text-sm font-black text-indigo-600 uppercase mb-4"></h4>
+                            <div id="strictFeaturesList" class="grid gap-3 mb-6"></div>
+
+                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-4 border-t pt-6">All Recent Updates
+                                & Features</h4>
+                            <div id="generalUpdatesList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-3xl border shadow-sm">
+                            <h4 class="text-xs font-bold uppercase text-slate-400 mb-4">Sentiment Index</h4>
+                            <canvas id="sentimentChart" height="200"></canvas>
+                        </div>
+                        <div class="bg-slate-900 text-white p-6 rounded-3xl flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-slate-400 font-bold text-xs uppercase">The Strategic Gap</h4>
+                                <p id="resGap" class="mt-2 text-sm italic"></p>
+                            </div>
+                            <button onclick="downloadPDF('deep')"
+                                class="w-full mt-6 bg-white text-slate-900 py-3 rounded-xl font-bold shadow-lg hover:bg-slate-100 transition flex justify-center items-center gap-2">
+                                <i class="fas fa-arrow-down"></i> Download Intel Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="pt-6 border-t mt-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-indigo-100 p-3 rounded-xl text-indigo-600">
+                            <i class="fas fa-chess-knight text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-black uppercase text-slate-800 tracking-tight">SWOT Analysis Matrix</h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                            <span class="text-emerald-700 font-bold text-xs uppercase">Strengths</span>
+                            <ul id="swot-s" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                        <div class="bg-amber-50 p-5 rounded-2xl border border-amber-100">
+                            <span class="text-amber-700 font-bold text-xs uppercase">Weaknesses</span>
+                            <ul id="swot-w" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                        <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100">
+                            <span class="text-blue-700 font-bold text-xs uppercase">Opportunities</span>
+                            <ul id="swot-o" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                        <div class="bg-red-50 p-5 rounded-2xl border border-red-100">
+                            <span class="text-red-700 font-bold text-xs uppercase">Threats</span>
+                            <ul id="swot-t" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="profile-section" class="hidden space-y-8 max-w-2xl mx-auto">
+            <div class="bg-white p-10 rounded-[2rem] border shadow-sm">
+                <h2 class="text-3xl font-black mb-2">Project DNA</h2>
+                <p class="text-slate-500 mb-8">Tell the AI about your company to enable gap analysis.</p>
+                <div class="space-y-5">
+                    <input id="my_name" type="text" placeholder="Project Name"
+                        class="w-full border-2 p-4 rounded-2xl bg-slate-50 focus:border-indigo-500 outline-none transition">
+                    <textarea id="my_description" rows="4" placeholder="What problem does your project solve?"
+                        class="w-full border-2 p-4 rounded-2xl bg-slate-50 focus:border-indigo-500 outline-none transition"></textarea>
+                    <textarea id="my_features" placeholder="Core Features (separate with commas)"
+                        class="w-full border-2 p-4 rounded-2xl bg-slate-50 focus:border-indigo-500 outline-none transition"></textarea>
+                    <button onclick="saveProfile()"
+                        class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:scale-[1.02] transition">Save
+                        & Sync DNA</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="category-section" class="hidden space-y-8">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[250px]">
+                    <label class="text-xs font-bold uppercase text-slate-400 mb-2 block">Business Category</label>
+                    <input id="catName" type="text" placeholder="e.g. Electric Vehicles, CRM, AI..."
+                        class="w-full bg-slate-50 border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <button onclick="analyzeCategory()" id="analyzeCatBtn"
+                    class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">Find
+                    Similar Companies</button>
+            </div>
+
+            <div id="cat-results" class="hidden space-y-6">
+                <div class="flex justify-between items-end">
+                    <h2 id="catBrandTitle" class="text-3xl font-black text-slate-800 capitalize"></h2>
+                    <button onclick="downloadPDF('category')"
+                        class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 transition flex justify-center items-center gap-2">
+                        <i class="fas fa-file-pdf"></i> Download PDF Report
+                    </button>
+                </div>
+                <div id="catCompetitors" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </section>
+
+        <section id="bi-dashboard-section" class="hidden space-y-8">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[250px]">
+                    <label class="text-xs font-bold uppercase text-slate-400 mb-2 block">Company for BI Report</label>
+                    <input id="biCompName" type="text" placeholder="e.g. Acme Corp..."
+                        class="w-full bg-slate-50 border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <button onclick="generateBIReport()" id="generateBiBtn"
+                    class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">Generate
+                    BI Dashboard</button>
+            </div>
+
+            <div id="bi-results" class="hidden space-y-6">
+                <!-- Overview -->
+                <div class="bg-white p-8 rounded-3xl border shadow-sm relative">
+                    <div class="absolute top-8 right-8 flex gap-3">
+                        <button onclick="viewSimilarCompanies()"
+                            class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl font-bold shadow-sm hover:bg-indigo-200 transition flex justify-center items-center gap-2 text-sm z-10">
+                            <i class="fas fa-users"></i> Similar Companies
+                        </button>
+                        <button onclick="downloadPDF('bi-report')"
+                            class="bg-slate-900 text-white px-4 py-2 rounded-xl font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 transition flex justify-center items-center gap-2 text-sm z-10">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </button>
+                    </div>
+                    <h3 id="biOverviewName" class="text-3xl font-black text-slate-800 mb-4 max-w-[60%]"></h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mt-6">
+                        <div><strong class="text-slate-500 block text-xs uppercase">Founded</strong><span
+                                id="biOverviewFounded" class="font-medium"></span></div>
+                        <div><strong class="text-slate-500 block text-xs uppercase">Founders</strong><span
+                                id="biOverviewFounders" class="font-medium"></span></div>
+                        <div><strong class="text-slate-500 block text-xs uppercase">Headquarters</strong><span
+                                id="biOverviewHQ" class="font-medium"></span></div>
+                        <div><strong class="text-slate-500 block text-xs uppercase">Industry</strong><span
+                                id="biOverviewIndustry" class="font-medium"></span></div>
+                        <div><strong class="text-slate-500 block text-xs uppercase">Market Position</strong><span
+                                id="biOverviewPosition" class="font-medium"></span></div>
+                    </div>
+                </div>
+
+                <!-- Two Columns (Products | Updates) -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Left: Products -->
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
+                        <h4 class="text-sm font-black text-indigo-600 uppercase mb-4 flex items-center gap-2"><i
+                                class="fas fa-boxes"></i> Products & Services</h4>
+                        <div id="biProductsList" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Right: Updates -->
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm space-y-4">
+                        <h4 class="text-sm font-black text-indigo-600 uppercase mb-4 flex items-center gap-2"><i
+                                class="fas fa-newspaper"></i> Recent Updates</h4>
+                        <ul id="biUpdatesList" class="space-y-3 mt-4 text-sm text-slate-700"></ul>
+                    </div>
+                </div>
+
+                <!-- Business Model Tree Component -->
+                <div class="bg-slate-900 text-white p-8 rounded-3xl shadow-xl flex flex-col items-center">
+                    <h4 class="text-indigo-400 text-sm font-black uppercase mb-8 flex items-center gap-2 w-full"><i
+                            class="fas fa-project-diagram"></i> Business Model Tree</h4>
+                    <div id="biModelTree" class="w-full">
+                        <!-- Tree will be rendered here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Bottom: SWOT -->
+                <div class="bg-white p-8 rounded-3xl border shadow-sm">
+                    <h4 class="text-sm font-black text-indigo-600 uppercase mb-6 flex items-center gap-2"><i
+                            class="fas fa-chess-board"></i> SWOT Analysis</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                            <span class="text-emerald-700 font-bold text-xs uppercase">Strengths</span>
+                            <ul id="bi-swot-s" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                        <div class="bg-amber-50 p-5 rounded-2xl border border-amber-100">
+                            <span class="text-amber-700 font-bold text-xs uppercase">Weaknesses</span>
+                            <ul id="bi-swot-w" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                        <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100">
+                            <span class="text-blue-700 font-bold text-xs uppercase">Opportunities</span>
+                            <ul id="bi-swot-o" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                        <div class="bg-red-50 p-5 rounded-2xl border border-red-100">
+                            <span class="text-red-700 font-bold text-xs uppercase">Threats</span>
+                            <ul id="bi-swot-t" class="text-[11px] mt-3 space-y-1 list-disc ml-3 text-slate-700"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="battle-modal" class="hidden fixed inset-0 bg-slate-900/95 z-[60] flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-[3rem] p-10 relative">
+            <button onclick="closeBattleCard()" class="absolute top-8 right-8 text-3xl font-light">&times;</button>
+            <div class="flex items-center gap-4 mb-10">
+                <div class="bg-red-600 text-white p-4 rounded-2xl shadow-lg animate-pulse"><i class="fas fa-bolt"></i>
+                </div>
+                <h2 class="text-4xl font-black uppercase italic tracking-tighter">Combat Battle Card</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-10">
+                <div class="space-y-6">
+                    <div class="bg-emerald-50 p-8 rounded-[2rem] border-l-8 border-emerald-500">
+                        <h4 class="font-black text-emerald-800 uppercase mb-4 text-sm">Kill Points (Why we win)</h4>
+                        <ul id="killPoints" class="space-y-3 font-bold text-emerald-900"></ul>
+                    </div>
+                    <div id="objections" class="bg-slate-50 p-8 rounded-[2rem] space-y-4"></div>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-indigo-600 text-white p-8 rounded-[2rem] shadow-2xl">
+                        <h4 class="text-indigo-200 font-bold uppercase text-xs mb-4">The Closing Pitch</h4>
+                        <p id="winningPitch" class="text-lg font-medium leading-relaxed"></p>
+                    </div>
+                    <div class="bg-amber-50 p-8 rounded-[2rem] border-l-8 border-amber-500">
+                        <h4 class="font-black text-amber-800 uppercase mb-4 text-sm">Landmines to Plant</h4>
+                        <ul id="landmines" class="space-y-2 text-sm italic"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:8000";
+        let sentimentChart = null;
+
+        async function updateNewsTicker() {
+            try {
+                const res = await fetch(`${API}/market-news`);
+                const data = await res.json();
+                const text = data.news.join(" &nbsp;&nbsp;&nbsp; • &nbsp;&nbsp;&nbsp; ");
+                document.getElementById('news-items').innerHTML = text + " • " + text;
+            } catch (e) { console.error("News fetch failed"); }
+        }
+
+        function showSection(type) {
+            document.getElementById('search-section').classList.toggle('hidden', type !== 'search');
+            document.getElementById('profile-section').classList.toggle('hidden', type !== 'profile');
+            document.getElementById('category-section').classList.toggle('hidden', type !== 'category');
+            document.getElementById('bi-dashboard-section').classList.toggle('hidden', type !== 'bi-dashboard');
+        }
+
+        function viewSimilarCompanies() {
+            const industry = document.getElementById('biOverviewIndustry').innerText;
+            if (!industry || industry === "N/A" || industry.trim() === "") {
+                return alert("Industry not identified for this company. Please specify it manually in the Similar Companies tab.");
+            }
+            document.getElementById('catName').value = industry;
+            showSection('category');
+            analyzeCategory();
+        }
+
+        function saveProfile() {
+            const profile = {
+                my_name: document.getElementById('my_name').value,
+                my_description: document.getElementById('my_description').value,
+                my_core_features: document.getElementById('my_features').value.split(',').map(s => s.trim())
+            };
+            localStorage.setItem('innotech_profile', JSON.stringify(profile));
+            alert("Project DNA Synchronized.");
+        }
+
+        async function analyzeAll() {
+            const company = document.getElementById('compName').value;
+            const days = document.getElementById('lookbackDays').value;
+            const profile = JSON.parse(localStorage.getItem('innotech_profile'));
+            if (!company) return alert("Enter a company name");
+            if (!profile) return alert("Please setup your Project DNA first");
+
+            const btn = document.getElementById('analyzeBtn');
+            btn.innerHTML = `<i class="fas fa-circle-notch animate-spin"></i> Analyzing...`;
+
+            try {
+                const res = await fetch(`${API}/analyze-company`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company_name: company, days: parseInt(days), profile: profile })
+                });
+                const data = await res.json();
+
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('resTitle').innerText = data.name;
+                document.getElementById('resBio').innerText = data.bio;
+                document.getElementById('resPrediction').innerText = data.next_predicted_move;
+                document.getElementById('resGap').innerText = data.strategic_gap;
+
+                // Time-Filtered Features
+                const header = document.getElementById('periodHeader');
+                const strictList = document.getElementById('strictFeaturesList');
+                header.innerText = `NEW PROPOSED FEATURES (LAST ${days} DAYS)`;
+
+                if (data.features_in_period.length === 0) {
+                    strictList.innerHTML = `<p class="text-slate-400 italic text-sm p-4 bg-slate-50 rounded-xl border-2 border-dashed">No specific features found within this ${days}-day window.</p>`;
+                } else {
+                    strictList.innerHTML = data.features_in_period.map(f => `
+                        <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl text-sm font-bold text-indigo-700 flex items-center gap-3">
+                            <i class="fas fa-rocket"></i> ${f}
+                        </div>`).join('');
+                }
+
+                // General Latest Updates
+                document.getElementById('generalUpdatesList').innerHTML = data.general_latest_updates.map(u => `
+                    <div class="bg-white border p-3 rounded-xl text-xs text-slate-600 flex items-center gap-3">
+                        <i class="fas fa-check-circle text-emerald-500"></i> ${u}
+                    </div>`).join('');
+
+                // SWOT
+                const fillSwot = (id, items) => document.getElementById(id).innerHTML = items.map(i => `<li>${i}</li>`).join('');
+                fillSwot('swot-s', data.swot.strengths);
+                fillSwot('swot-w', data.swot.weaknesses);
+                fillSwot('swot-o', data.swot.opportunities);
+                fillSwot('swot-t', data.swot.threats);
+
+                // Sentiment
+                const sTag = document.getElementById('sentimentTag');
+                sTag.innerText = data.sentiment;
+                sTag.className = `px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${data.sentiment === 'Positive' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`;
+
+                renderChart(data.sentiment_trend);
+            } catch (e) {
+                alert("Intel Gathering Error");
+            } finally {
+                btn.innerText = "Run Deep Analysis";
+            }
+        }
+
+        async function generateBIReport() {
+            const company = document.getElementById('biCompName').value;
+            if (!company) return alert("Enter a company name");
+
+            const btn = document.getElementById('generateBiBtn');
+            btn.innerHTML = `<i class="fas fa-circle-notch animate-spin"></i> Generating...`;
+
+            try {
+                const res = await fetch(`${API}/bi-report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company_name: company })
+                });
+                const data = await res.json();
+
+                document.getElementById('bi-results').classList.remove('hidden');
+
+                // Overview
+                document.getElementById('biOverviewName').innerText = data.overview["Company Name"] || company;
+                document.getElementById('biOverviewFounded').innerText = data.overview["Founded Year"] || "N/A";
+                document.getElementById('biOverviewFounders').innerText = data.overview["Founders"] || "N/A";
+                document.getElementById('biOverviewHQ').innerText = data.overview["Headquarters"] || "N/A";
+                document.getElementById('biOverviewIndustry').innerText = data.overview["Industry"] || "N/A";
+                document.getElementById('biOverviewPosition').innerText = data.overview["Market Position"] || "N/A";
+
+                // Products
+                let productsHTML = "";
+                if (Array.isArray(data.products)) {
+                    productsHTML = `<ul class="list-disc ml-4 space-y-1 text-slate-700 text-sm">` +
+                        data.products.map(p => `<li>${p}</li>`).join('') + `</ul>`;
+                } else if (typeof data.products === 'object') {
+                    for (const [category, items] of Object.entries(data.products)) {
+                        productsHTML += `<div class="mb-3"><strong class="text-slate-800 text-xs uppercase border-b border-slate-200 pb-1 block mb-2">${category}</strong>`;
+                        productsHTML += `<ul class="list-disc ml-4 space-y-1 text-slate-700 text-sm">` +
+                            (Array.isArray(items) ? items.map(i => `<li>${i}</li>`).join('') : `<li>${items}</li>`) + `</ul></div>`;
+                    }
+                }
+                document.getElementById('biProductsList').innerHTML = productsHTML;
+
+                // Diagram Tree
+                const treeContainer = document.getElementById('biModelTree');
+                if (data.business_model) {
+                    const bm = data.business_model;
+                    const renderNodeList = (title, items, colorClass, iconHtml) => {
+                        let listItems = (Array.isArray(items) ? items : [items]).map(i => `<li class="text-xs mb-1 text-slate-300 flex items-start"><span class="mr-2 text-${colorClass}-400 opacity-50">•</span><span>${i}</span></li>`).join('');
+                        return `
+                        <div class="bg-slate-800/80 border border-slate-700/50 p-5 rounded-2xl w-full max-w-[280px] shadow-lg relative z-10 transition hover:-translate-y-1 duration-300">
+                            <h5 class="text-${colorClass}-400 font-bold uppercase text-[10px] tracking-widest mb-3 flex items-center gap-2">${iconHtml} ${title}</h5>
+                            <ul class="space-y-1">${listItems}</ul>
+                        </div>
+                        `;
+                    };
+
+                    treeContainer.innerHTML = `
+                        <div class="relative w-full py-4 flex flex-col items-center">
+                            <!-- Connecting Lines SVG -->
+                            <svg class="absolute inset-0 w-full h-full pointer-events-none z-0 hidden md:block" preserveAspectRatio="none">
+                                <!-- Line from Value Prop down to center branch -->
+                                <line x1="50%" y1="20%" x2="50%" y2="50%" stroke="#334155" stroke-width="2" stroke-dasharray="4" />
+                                <!-- Horizontal branch line -->
+                                <line x1="20%" y1="50%" x2="80%" y2="50%" stroke="#334155" stroke-width="2" stroke-dasharray="4" />
+                                <!-- Lines down to 3 bottom nodes -->
+                                <line x1="20%" y1="50%" x2="20%" y2="70%" stroke="#334155" stroke-width="2" stroke-dasharray="4" />
+                                <line x1="50%" y1="50%" x2="50%" y2="70%" stroke="#334155" stroke-width="2" stroke-dasharray="4" />
+                                <line x1="80%" y1="50%" x2="80%" y2="70%" stroke="#334155" stroke-width="2" stroke-dasharray="4" />
+                            </svg>
+
+                            <!-- Top Node: Value Proposition -->
+                            <div class="flex justify-center w-full mb-12 md:mb-16">
+                                ${renderNodeList('Value Proposition', bm["Value Proposition"] || bm["value_proposition"] || [], 'indigo', '<i class="fas fa-gem"></i>')}
+                            </div>
+
+                            <!-- Bottom 3 Nodes: Customers, Partners, Revenue -->
+                            <div class="flex flex-col md:flex-row justify-center md:justify-between w-full max-w-4xl gap-6 md:gap-4 relative pt-4">
+                                <div class="flex justify-center w-full">
+                                    ${renderNodeList('Key Partners', bm["Key Partners"] || bm["key_partners"] || [], 'emerald', '<i class="fas fa-handshake"></i>')}
+                                </div>
+                                <div class="flex justify-center w-full">
+                                    ${renderNodeList('Revenue Streams', bm["Revenue Streams"] || bm["revenue_streams"] || [], 'amber', '<i class="fas fa-coins"></i>')}
+                                </div>
+                                <div class="flex justify-center w-full">
+                                    ${renderNodeList('Customer Segments', bm["Customer Segments"] || bm["customer_segments"] || [], 'blue', '<i class="fas fa-users"></i>')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    treeContainer.innerHTML = `<p class="text-slate-500 italic text-sm text-center py-8">Business Model structure not available.</p>`;
+                }
+
+                // Updates
+                const updatesList = document.getElementById('biUpdatesList');
+                if (Array.isArray(data.recent_updates)) {
+                    updatesList.innerHTML = data.recent_updates.map(u => `<li class="flex items-start gap-2"><i class="fas fa-angle-right text-indigo-400 mt-1"></i> <span>${u}</span></li>`).join('');
+                } else {
+                    updatesList.innerHTML = `<li>No recent updates found.</li>`;
+                }
+
+                // SWOT
+                const fillSwot = (id, items) => {
+                    const el = document.getElementById(id);
+                    if (Array.isArray(items)) {
+                        el.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+                    } else {
+                        el.innerHTML = "";
+                    }
+                };
+                if (data.swot) {
+                    fillSwot('bi-swot-s', data.swot.Strengths || data.swot.strengths || []);
+                    fillSwot('bi-swot-w', data.swot.Weaknesses || data.swot.weaknesses || []);
+                    fillSwot('bi-swot-o', data.swot.Opportunities || data.swot.opportunities || []);
+                    fillSwot('bi-swot-t', data.swot.Threats || data.swot.threats || []);
+                }
+
+            } catch (e) {
+                alert("Intel Gathering Error (BI Report)");
+                console.error(e);
+            } finally {
+                btn.innerText = "Generate BI Dashboard";
+            }
+        }
+
+        async function analyzeCategory() {
+            const category = document.getElementById('catName').value;
+            if (!category) return alert("Enter a business category");
+
+            const btn = document.getElementById('analyzeCatBtn');
+            btn.innerHTML = `<i class="fas fa-circle-notch animate-spin"></i> Analyzing...`;
+
+            try {
+                const res = await fetch(`${API}/competitive-analysis`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category_name: category })
+                });
+                const data = await res.json();
+
+                document.getElementById('cat-results').classList.remove('hidden');
+                document.getElementById('catBrandTitle').innerText = `Top Competitors in ${data.category}`;
+
+                document.getElementById('catCompetitors').innerHTML = data.top_competitors.map(c => `
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm hover:shadow-lg transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-xl font-black text-indigo-900 hover:text-indigo-600 transition tracking-tight">${c.company_name}</h3>
+                                <div class="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase rounded-full tracking-widest text-center whitespace-nowrap">${c.market_position}</div>
+                            </div>
+                            <div class="space-y-3 text-sm text-slate-600 mb-6">
+                                <p><strong class="text-slate-800 border-b border-slate-200 pb-1 mb-1 block">Overview</strong></p>
+                                <p><strong>Founded:</strong> ${c.founded} &middot; ${c.headquarters}</p>
+                                <p><strong>Founder(s):</strong> ${c.founders}</p>
+                                <p><strong>Revenue:</strong> <span class="text-emerald-600 font-bold">${c.revenue}</span></p>
+                                
+                                <p><strong class="text-slate-800 border-b border-slate-200 pb-1 mb-1 mt-4 block">Key Products</strong></p>
+                                <div class="flex flex-wrap gap-2">
+                                    ${c.key_products.map(p => `<span class="bg-slate-100 px-2 py-1 rounded-md text-xs font-medium text-slate-700">${p}</span>`).join('')}
+                                </div>
+                                
+                                <p><strong class="text-slate-800 border-b border-slate-200 pb-1 mb-1 mt-4 block">Strategy</strong></p>
+                                <p><strong class="text-slate-700">Strength:</strong> <span class="italic text-slate-500">${c.competitive_strength}</span></p>
+                                <p><strong class="text-slate-700">Target Audience:</strong> ${c.target_audience}</p>
+                            </div>
+                        </div>
+                        <a href="${c.website}" target="_blank" class="block text-center bg-slate-900 text-white py-3 rounded-xl text-xs font-bold shadow-lg shadow-slate-200 hover:bg-indigo-600 hover:shadow-indigo-200 transition-all duration-300">Visit Website <i class="fas fa-external-link-alt ml-1"></i></a>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                alert("Intel Gathering Error");
+            } finally {
+                btn.innerText = "Find Similar Companies";
+            }
+        }
+
+        async function openBattleCard() {
+            const company = document.getElementById('resTitle').innerText;
+            const profile = JSON.parse(localStorage.getItem('innotech_profile'));
+            if (!company) return alert("Analyze a company first!");
+
+            document.getElementById('battle-modal').classList.remove('hidden');
+            const res = await fetch(`${API}/generate-battle-card`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ company_name: company, profile: profile })
+            });
+            const data = await res.json();
+
+            document.getElementById('killPoints').innerHTML = data.kill_points.map(p => `<li><i class="fas fa-chevron-right mr-2 text-emerald-500"></i> ${p}</li>`).join('');
+            document.getElementById('winningPitch').innerText = data.summary;
+            document.getElementById('landmines').innerHTML = data.top_landmines.map(l => `<li>• ${l}</li>`).join('');
+        }
+
+        function closeBattleCard() { document.getElementById('battle-modal').classList.add('hidden'); }
+
+        async function downloadPDF(type) {
+            let title = "";
+            let content = [];
+
+            if (type === 'deep') {
+                title = `Deep Analysis: ${document.getElementById('resTitle').innerText}`;
+                content.push(`### Executive Summary`);
+                content.push(document.getElementById('resBio').innerText);
+                content.push(`**Strategic Prediction**`);
+                content.push(document.getElementById('resPrediction').innerText);
+                content.push(`**The Strategic Gap**`);
+                content.push(document.getElementById('resGap').innerText);
+
+                content.push(`### SWOT Analysis`);
+                content.push(`**Strengths**`);
+                Array.from(document.getElementById('swot-s').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Weaknesses**`);
+                Array.from(document.getElementById('swot-w').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Opportunities**`);
+                Array.from(document.getElementById('swot-o').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Threats**`);
+                Array.from(document.getElementById('swot-t').children).forEach(li => content.push(`- ${li.innerText}`));
+            } else if (type === 'category') {
+                title = document.getElementById('catBrandTitle').innerText;
+                const cards = document.getElementById('catCompetitors').children;
+
+                for (let i = 0; i < cards.length; i++) {
+                    const h3 = cards[i].querySelector('h3').innerText;
+                    const position = cards[i].querySelector('.bg-indigo-50').innerText;
+                    content.push(`### ${i + 1}. ${h3} (${position})`);
+
+                    const pTags = cards[i].querySelectorAll('p');
+                    pTags.forEach(p => {
+                        if (p.innerText && !p.querySelector('strong.border-b')) {
+                            content.push(p.innerText.replace("·", "-"));
+                        }
+                    });
+                }
+            } else if (type === 'bi-report') {
+                title = `BI Report: ${document.getElementById('biOverviewName').innerText}`;
+
+                content.push(`### Company Overview`);
+                const overviewItems = document.querySelectorAll('#biOverviewFounded, #biOverviewFounders, #biOverviewHQ, #biOverviewIndustry, #biOverviewPosition');
+                const labels = ["Founded", "Founders", "Headquarters", "Industry", "Market Position"];
+                overviewItems.forEach((el, index) => {
+                    content.push(`**${labels[index]}:** ${el.innerText}`);
+                });
+
+                content.push(`### Products & Services`);
+                const productsList = document.getElementById('biProductsList');
+                if (productsList) {
+                    const ulElements = productsList.querySelectorAll('ul');
+                    if (ulElements.length > 0) {
+                        const containers = productsList.children;
+                        for (let i = 0; i < containers.length; i++) {
+                            if (containers[i].tagName === 'DIV' && containers[i].querySelector('strong')) {
+                                content.push(`**${containers[i].querySelector('strong').innerText}**`);
+                                Array.from(containers[i].querySelector('ul').children).forEach(li => content.push(`- ${li.innerText}`));
+                            } else if (containers[i].tagName === 'UL') {
+                                Array.from(containers[i].children).forEach(li => content.push(`- ${li.innerText}`));
+                            }
+                        }
+                    } else {
+                        content.push("No specific products listed.");
+                    }
+                }
+
+                content.push(`### Business Model`);
+                const treeContainer = document.getElementById('biModelTree');
+                if (treeContainer) {
+                    const nodes = treeContainer.querySelectorAll('.bg-slate-800\\/80');
+                    nodes.forEach(node => {
+                        content.push(`**${node.querySelector('h5').innerText.trim()}**`);
+                        Array.from(node.querySelectorAll('li')).forEach(li => content.push(`- ${li.innerText.replace('•', '').trim()}`));
+                    });
+                }
+
+                content.push(`### Recent Updates`);
+                Array.from(document.getElementById('biUpdatesList').children).forEach(li => content.push(`- ${li.innerText}`));
+
+                content.push(`### SWOT Analysis`);
+                content.push(`**Strengths**`);
+                Array.from(document.getElementById('bi-swot-s').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Weaknesses**`);
+                Array.from(document.getElementById('bi-swot-w').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Opportunities**`);
+                Array.from(document.getElementById('bi-swot-o').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Threats**`);
+                Array.from(document.getElementById('bi-swot-t').children).forEach(li => content.push(`- ${li.innerText}`));
+            }
+
+            try {
+                const res = await fetch(`${API}/download-report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content })
+                });
+
+                if (!res.ok) throw new Error("Failed to generate PDF");
+
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            } catch (e) {
+                alert("Error downloading report.");
+                console.error(e);
+            }
+        }
+
+        function renderChart(trend) {
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+            if (sentimentChart) sentimentChart.destroy();
+            sentimentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trend.map(t => t.date),
+                    datasets: [{
+                        label: 'Index',
+                        data: trend.map(t => t.score),
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
+            });
+        }
+
+        window.onload = () => {
+            updateNewsTicker();
+            const saved = localStorage.getItem('innotech_profile');
+            if (saved) {
+                const p = JSON.parse(saved);
+                document.getElementById('my_name').value = p.my_name;
+                document.getElementById('my_description').value = p.my_description;
+                document.getElementById('my_features').value = p.my_core_features.join(', ');
+            }
+        };
+    </script>
+</body>
+
+</html>
