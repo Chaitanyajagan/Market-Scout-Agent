@@ -351,12 +351,19 @@
         const API = "http://localhost:8000";
         let sentimentChart = null;
 
+        let currentNewsText = "";
         async function updateNewsTicker() {
             try {
                 const res = await fetch(`${API}/market-news`);
                 const data = await res.json();
                 const text = data.news.join(" &nbsp;&nbsp;&nbsp; • &nbsp;&nbsp;&nbsp; ");
-                document.getElementById('news-items').innerHTML = text + " • " + text;
+                const newText = text + " • " + text;
+
+                // Only update DOM if text actually changed, to prevent resetting the CSS marquee animation
+                if (currentNewsText !== newText) {
+                    document.getElementById('news-items').innerHTML = newText;
+                    currentNewsText = newText;
+                }
             } catch (e) { console.error("News fetch failed"); }
         }
 
@@ -912,6 +919,7 @@
 
         window.onload = () => {
             updateNewsTicker();
+            setInterval(updateNewsTicker, 5000); // Poll every 5 seconds for updates
             renderProfiles();
         };
     </script>
