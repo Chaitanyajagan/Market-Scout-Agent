@@ -19,13 +19,14 @@ app.add_middleware(
 )
 
 # Configuration
-GROQ_API_KEY = "Enter your api key" 
+GROQ_API_KEY = "ENTER-YOUR-API-KEY" 
 client = Groq(api_key=GROQ_API_KEY)
 
 class CompanyProfile(BaseModel):
     my_name: str
     my_description: str
     my_core_features: list
+    maintenance_tips: list = []
 
 class AnalysisRequest(BaseModel):
     company_name: str
@@ -67,7 +68,7 @@ def ai_json_call(prompt: str):
 async def get_market_news():
     try:
         with DDGS() as ddgs:
-            results = ddgs.text("latest breaking technology industry news", max_results=10)
+            results = ddgs.news("technology", max_results=10)
             news_list = [r['title'] for r in results] if results else []
             if not news_list:
                 news_list = [
@@ -276,6 +277,35 @@ async def competitive_analysis(req: CategoryRequest):
       ]
     }}
     
+    Only return valid JSON. No explanations outside JSON.
+    """
+    return ai_json_call(prompt)
+
+@app.post("/analyze-project-maintenance")
+async def analyze_project_maintenance(req: CompanyProfile):
+    search_query = f"{req.my_name} technology market trends what to build next {datetime.now().year}"
+    raw_data = search_web(search_query)
+
+    prompt = f"""
+    Based on general market context: {raw_data}
+    
+    You are an AI Product Strategy Consultant.
+    The user is building a project called "{req.my_name}".
+    Description: "{req.my_description}"
+    Current Core Features: {req.my_core_features}
+    
+    Provide exactly 3 "Better to Maintain Tips" for this specific project.
+    Critically analyze their provided Description and Core Features against the market data. 
+    EACH tip MUST explicitly reference their given project details or features, and specify EXACTLY what needs to be updated or added to compete effectively with the current market.
+    
+    Return JSON:
+    {{
+        "maintenance_tips": [
+            "Tip 1...",
+            "Tip 2...",
+            "Tip 3..."
+        ]
+    }}
     Only return valid JSON. No explanations outside JSON.
     """
     return ai_json_call(prompt)
