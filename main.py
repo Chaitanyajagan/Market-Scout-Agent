@@ -19,6 +19,7 @@ app.add_middleware(
 )
 
 # Configuration
+#ENTER-YOUR-API-KEY
 GROQ_API_KEY = "ENTER-YOUR-API-KEY" 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -64,29 +65,31 @@ def ai_json_call(prompt: str):
     return json.loads(completion.choices[0].message.content)
 
 # --- Endpoints ---
+last_news_fetch = None
+cached_news = []
+
 @app.get("/market-news")
 async def get_market_news():
-    try:
-        with DDGS() as ddgs:
-            results = ddgs.news("technology", max_results=10)
-            news_list = [r['title'] for r in results] if results else []
-            if not news_list:
-                news_list = [
-                    "AI Market Surges as New Models are Released",
-                    "Global Tech Stocks Rally Following Strong Earnings",
-                    "Innovations in Quantum Computing Show Promise",
-                    "Cybersecurity Threats on the Rise in 2026",
-                    "Major Tech Giants Announce Strategic Partnerships"
-                ]
-            return {"news": news_list}
-    except Exception:
-        return {"news": [
-            "AI Market Surges as New Models are Released",
-            "Global Tech Stocks Rally Following Strong Earnings",
-            "Innovations in Quantum Computing Show Promise",
-            "Cybersecurity Threats on the Rise in 2026",
-            "Major Tech Giants Announce Strategic Partnerships"
-        ]}
+    global last_news_fetch, cached_news
+    now = datetime.now()
+    
+    # Fetch news if cache is empty or older than 60 seconds 
+    # This prevents rate limits while allowing the frontend to poll frequently
+    if not last_news_fetch or (now - last_news_fetch).total_seconds() > 60 or not cached_news:
+        try:
+            with DDGS() as ddgs:
+                results = ddgs.news("technology", max_results=15)
+                news_list = [r['title'] for r in results] if results else []
+                if news_list:
+                    cached_news = news_list
+                    last_news_fetch = now
+        except Exception:
+            pass
+            
+    if not cached_news:
+        return {"news": ["Gathering live technology market data..."]}
+        
+    return {"news": cached_news}
 
 @app.post("/analyze-company")
 async def analyze_company(req: AnalysisRequest):
