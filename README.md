@@ -37,11 +37,44 @@
 5. **Open the Front-End:**
    In your browser, double-click or open `index.html`. No special server is needed for the frontend file, but it must be able to hit the `localhost:8000` endpoint.
 
-## Architecture
+## Architecture & Data Flow ⚙️
 
-The system operates via a decoupled architecture. The vanilla JavaScript frontend (`index.html`) securely issues `POST` and `GET` HTTP requests via `fetch()` to various API endpoints available in (`main.py`).
+The system operates via a decoupled architecture. The vanilla JavaScript frontend securely issues `POST` and `GET` HTTP requests via `fetch()` to various API endpoints available in the backend server.
 
-The Python backend processes these requests, utilizes `ddgs` to pull in live contextual data from the internet, injects that data alongside system instructions into the Groq LLM API, and parses the heavily formatted JSON response back down to the frontend for rendering. 
+The Python backend processes these requests, queries live search engines for deep market context, injects that data alongside system instructions into the Groq LLM API, and returns heavily formatted JSON down to the frontend for rendering.
 
+```mermaid
+flowchart TD
+    %% Define Styles
+    classDef frontend fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff
+    classDef backend fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff
+    classDef external fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff
+    classDef storage fill:#8b5cf6,stroke:#5b21b6,stroke-width:2px,color:#fff
+    
+    %% Components
+    UI[Frontend Client\nindex.html + JS/Tailwind]:::frontend
+    LS[(Local Storage\nProject DNA arrays)]:::storage
+    FastAPI[FastAPI Backend\nmain.py]:::backend
+    PDF[PDF Generator\nFPDF]:::backend
+    Search[DuckDuckGo Search\nWeb & News]:::external
+    LLM[Groq AI Engine\nLlama 3.3 70B]:::external
+
+    %% Relationships
+    UI -->|Saves Profile State| LS
+    UI -->|HTTP POST/GET| FastAPI
+    
+    FastAPI -->|Queries Live Data| Search
+    Search -.->|Returns Context| FastAPI
+    
+    FastAPI -->|Sends Context + Prompt| LLM
+    LLM -.->|Returns Structured JSON| FastAPI
+    
+    FastAPI -->|Triggers Document Build| PDF
+    PDF -.->|Returns Byte Stream| FastAPI
+    
+    FastAPI -.->|Returns JSON / PDF Blob| UI
+```
+
+### Key Components:
 * **`index.html`**: Contains the complete DOM structure, Tailwind utility classes for modern aesthetics, and the interaction layer scripts.
-* **`main.py`**: Contains the FastAPI app, the routing endpoints (`/market-news`, `/analyze-company`, `/bi-report`, `/competitive-analysis`, `/download-report`), LLM prompt instructions, and the PDF compiler.
+* **`main.py`**: Contains the FastAPI app, the routing endpoints (`/market-news`, `/analyze-company`, `/bi-report`, `/analyze-project-maintenance`, `/competitive-analysis`, `/download-report`), LLM prompt instructions, and PDF compilation logic.
