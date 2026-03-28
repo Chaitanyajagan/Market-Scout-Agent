@@ -4,6 +4,7 @@
 
 ## Core Features 🚀
 
+- **Interactive AI Chatbot**: A premium, floating chat widget powered by Google Gemini 2.5 Flash for instant interactive analysis and strategy Q&A right from the dashboard.
 - **Deep Analysis**: Enter any company name to receive an instant intelligence briefing, including a strategic gap analysis, predicted next moves, recent feature releases, and a full SWOT matrix.
 - **Dynamic BI Dashboard**: Generate a structured Business Intelligence report that breaks down a company's executive overview, major products/services, recent key updates, and a visual Business Model structure tree.
 - **Similar Companies Finder**: Automatically identify and analyze competitors within the same business category, complete with market position, estimated revenue, competitive strengths, and links to their sites.
@@ -16,7 +17,7 @@
 - **Frontend**: Pure HTML, Javascript, vanilla CSS styling via Tailwind UI CDN, Chart.js for data visualization, and FontAwesome for iconography. 
 - **Backend API**: Python via FastAPI
 - **Search Engine**: DuckDuckGo Search Integration (`ddgs`)
-- **Intelligence Engine**: Groq API using the `llama-3.3-70b-versatile` model
+- **Intelligence Engines**: Groq API (`llama-3.3-70b-versatile`) and Google Gemini API (`gemini-2.5-flash` via `google-genai`)
 - **PDF Generation**: `fpdf`
 
 ## Setup & Running Locally 💻
@@ -28,20 +29,22 @@
    pip install -r requirements.txt
    ```
 3. **Set API Keys:**
-   Update `main.py` with your active `GROQ_API_KEY`. (It is currently hardcoded for demonstration purposes.)
+   - Create a `.env` file in the root directory.
+   - Add your Gemini API key: `GEMINI_API_KEY=your_key_here`
+   - Update `main.py` with your active `GROQ_API_KEY`. (It is currently hardcoded for demonstration purposes.)
 4. **Run the backend server:**
    ```bash
    python main.py
    ```
-   *The FastAPI server will start at `http://localhost:8000`*
+   *The FastAPI server will start.*
 5. **Open the Front-End:**
-   In your browser, double-click or open `index.html`. No special server is needed for the frontend file, but it must be able to hit the `localhost:8000` endpoint.
+   In your browser, double-click or open `index.html`. No special web server is needed for the frontend file. It connects to the backend statically at `http://127.0.0.1:8000`.
 
 ## Architecture & Data Flow ⚙️
 
 The system operates via a decoupled architecture. The vanilla JavaScript frontend securely issues `POST` and `GET` HTTP requests via `fetch()` to various API endpoints available in the backend server.
 
-The Python backend processes these requests, queries live search engines for deep market context, injects that data alongside system instructions into the Groq LLM API, and returns heavily formatted JSON down to the frontend for rendering.
+The Python backend processes these requests, queries live search engines for deep market context, injects that data alongside system instructions into the Groq LLM API, and returns heavily formatted JSON down to the frontend for rendering. The Gemini API is also leveraged for real-time interactive chat natively in the UI.
 
 ```mermaid
 flowchart TD
@@ -58,6 +61,7 @@ flowchart TD
     PDF[PDF Generator\nFPDF]:::backend
     Search[DuckDuckGo Search\nWeb & News]:::external
     LLM[Groq AI Engine\nLlama 3.3 70B]:::external
+    Gemini[Google Gemini API\nGemini 2.5 Flash]:::external
 
     %% Relationships
     UI -->|Saves Profile State| LS
@@ -68,6 +72,8 @@ flowchart TD
     
     FastAPI -->|Sends Context + Prompt| LLM
     LLM -.->|Returns Structured JSON| FastAPI
+    
+    FastAPI <-->|Interactive Q&A Chat| Gemini
     
     FastAPI -->|Triggers Document Build| PDF
     PDF -.->|Returns Byte Stream| FastAPI
