@@ -6,6 +6,13 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import Groq
+from dotenv import load_dotenv
+from google import genai
+
+load_dotenv()
+gemini_client = None
+if "GEMINI_API_KEY" in os.environ and os.environ["GEMINI_API_KEY"]:
+    gemini_client = genai.Client()
 from duckduckgo_search import DDGS
 from fpdf import FPDF
 
@@ -19,8 +26,7 @@ app.add_middleware(
 )
 
 # Configuration
-#ENTER-YOUR-API-KEY
-GROQ_API_KEY = "ENTER-YOUR-API-KEY" 
+GROQ_API_KEY = "ENTER-YOUR-API" 
 client = Groq(api_key=GROQ_API_KEY)
 
 class CompanyProfile(BaseModel):
@@ -40,6 +46,9 @@ class CategoryRequest(BaseModel):
 class ReportRequest(BaseModel):
     title: str
     content: list[str]
+
+class ChatRequest(BaseModel):
+    message: str
 
 # --- PDF Generator ---
 def search_web(query: str):
@@ -90,6 +99,19 @@ async def get_market_news():
         return {"news": ["Gathering live technology market data..."]}
         
     return {"news": cached_news}
+
+@app.post("/chat")
+async def chat_with_gemini(req: ChatRequest):
+    try:
+        if not gemini_client:
+            return {"error": "Gemini API credentials not configured."}
+        response = gemini_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=req.message,
+        )
+        return {"response": response.text}
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.post("/analyze-company")
 async def analyze_company(req: AnalysisRequest):
