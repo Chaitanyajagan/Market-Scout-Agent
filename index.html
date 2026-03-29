@@ -392,7 +392,7 @@
                 <!-- Welcome Message -->
                 <div class="flex gap-3 items-end">
                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs shadow-md flex-shrink-0">
-                        <i class="fas fa-sparkles"></i>
+                        <i class="fas fa-robot"></i>
                     </div>
                     <div class="bg-white text-slate-700 border border-slate-100 shadow-sm p-4 rounded-2xl rounded-tl-sm max-w-[85%] text-sm leading-relaxed font-medium">
                         Hello! I'm your Gemini-powered AI Assistant. How can I help you with strategic intelligence today?
@@ -415,7 +415,7 @@
         <!-- Floating Toggle Button -->
         <button onclick="toggleChat()" id="chat-toggle-btn" class="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-violet-600 text-white rounded-full shadow-[0_10px_25px_-5px_rgba(79,70,229,0.5)] hover:shadow-[0_15px_35px_-5px_rgba(79,70,229,0.6)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-center text-2xl relative">
             <div class="absolute inset-0 rounded-full animate-ping opacity-20 bg-indigo-400"></div>
-            <i class="fas fa-comment-dots" id="chat-icon-open"></i>
+            <i class="fas fa-robot" id="chat-icon-open"></i>
             <i class="fas fa-times hidden" id="chat-icon-close"></i>
         </button>
     </div>
@@ -925,4 +925,162 @@
                     body: JSON.stringify({ message })
                 });
                 const data = await res.json();
-       
+                
+                if (data.error) {
+                    appendMessage('bot', `⚠️ Error: ${data.error}`);
+                } else {
+                    appendMessage('bot', data.response);
+                }
+            } catch (err) {
+                appendMessage('bot', "⚠️ Connection error. Make sure the backend is running and Gemini API key is correct.");
+            } finally {
+                input.disabled = false;
+                input.focus();
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        }
+
+        async function downloadPDF(type) {
+            let title = "";
+            let content = [];
+
+            if (type === 'deep') {
+                title = `Deep Analysis: ${document.getElementById('resTitle').innerText}`;
+                content.push(`### Executive Summary`);
+                content.push(document.getElementById('resBio').innerText);
+                content.push(`**Strategic Prediction**`);
+                content.push(document.getElementById('resPrediction').innerText);
+                content.push(`**The Strategic Gap**`);
+                content.push(document.getElementById('resGap').innerText);
+
+                content.push(`### SWOT Analysis`);
+                content.push(`**Strengths**`);
+                Array.from(document.getElementById('swot-s').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Weaknesses**`);
+                Array.from(document.getElementById('swot-w').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Opportunities**`);
+                Array.from(document.getElementById('swot-o').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Threats**`);
+                Array.from(document.getElementById('swot-t').children).forEach(li => content.push(`- ${li.innerText}`));
+            } else if (type === 'category') {
+                title = document.getElementById('catBrandTitle').innerText;
+                const cards = document.getElementById('catCompetitors').children;
+
+                for (let i = 0; i < cards.length; i++) {
+                    const h3 = cards[i].querySelector('h3').innerText;
+                    const position = cards[i].querySelector('.bg-indigo-50').innerText;
+                    content.push(`### ${i + 1}. ${h3} (${position})`);
+
+                    const pTags = cards[i].querySelectorAll('p');
+                    pTags.forEach(p => {
+                        if (p.innerText && !p.querySelector('strong.border-b')) {
+                            content.push(p.innerText.replace("·", "-"));
+                        }
+                    });
+                }
+            } else if (type === 'bi-report') {
+                title = `BI Report: ${document.getElementById('biOverviewName').innerText}`;
+
+                content.push(`### Company Overview`);
+                const overviewItems = document.querySelectorAll('#biOverviewFounded, #biOverviewFounders, #biOverviewHQ, #biOverviewIndustry, #biOverviewPosition');
+                const labels = ["Founded", "Founders", "Headquarters", "Industry", "Market Position"];
+                overviewItems.forEach((el, index) => {
+                    content.push(`**${labels[index]}:** ${el.innerText}`);
+                });
+
+                content.push(`### Products & Services`);
+                const productsList = document.getElementById('biProductsList');
+                if (productsList) {
+                    const ulElements = productsList.querySelectorAll('ul');
+                    if (ulElements.length > 0) {
+                        const containers = productsList.children;
+                        for (let i = 0; i < containers.length; i++) {
+                            if (containers[i].tagName === 'DIV' && containers[i].querySelector('strong')) {
+                                content.push(`**${containers[i].querySelector('strong').innerText}**`);
+                                Array.from(containers[i].querySelector('ul').children).forEach(li => content.push(`- ${li.innerText}`));
+                            } else if (containers[i].tagName === 'UL') {
+                                Array.from(containers[i].children).forEach(li => content.push(`- ${li.innerText}`));
+                            }
+                        }
+                    } else {
+                        content.push("No specific products listed.");
+                    }
+                }
+
+                content.push(`### Business Model`);
+                const treeContainer = document.getElementById('biModelTree');
+                if (treeContainer) {
+                    const nodes = treeContainer.querySelectorAll('.bg-slate-800\\/80');
+                    nodes.forEach(node => {
+                        content.push(`**${node.querySelector('h5').innerText.trim()}**`);
+                        Array.from(node.querySelectorAll('li')).forEach(li => content.push(`- ${li.innerText.replace('•', '').trim()}`));
+                    });
+                }
+
+                content.push(`### Recent Updates`);
+                Array.from(document.getElementById('biUpdatesList').children).forEach(li => content.push(`- ${li.innerText}`));
+
+                content.push(`### SWOT Analysis`);
+                content.push(`**Strengths**`);
+                Array.from(document.getElementById('bi-swot-s').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Weaknesses**`);
+                Array.from(document.getElementById('bi-swot-w').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Opportunities**`);
+                Array.from(document.getElementById('bi-swot-o').children).forEach(li => content.push(`- ${li.innerText}`));
+                content.push(`**Threats**`);
+                Array.from(document.getElementById('bi-swot-t').children).forEach(li => content.push(`- ${li.innerText}`));
+            }
+
+            try {
+                const res = await fetch(`${API}/download-report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content })
+                });
+
+                if (!res.ok) throw new Error("Failed to generate PDF");
+
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            } catch (e) {
+                alert("Error downloading report.");
+                console.error(e);
+            }
+        }
+
+        function renderChart(trend) {
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+            if (sentimentChart) sentimentChart.destroy();
+            sentimentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trend.map(t => t.date),
+                    datasets: [{
+                        label: 'Index',
+                        data: trend.map(t => t.score),
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
+            });
+        }
+
+        window.onload = () => {
+            updateNewsTicker();
+            setInterval(updateNewsTicker, 5000); // Poll every 5 seconds for updates
+            renderProfiles();
+        };
+    </script>
+</body>
+
+</html>
