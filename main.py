@@ -63,15 +63,35 @@ def search_web(query: str):
         return "No recent web data found."
 
 def ai_json_call(prompt: str):
-    completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": "You are a Senior Business Intelligence Analyst. Output strictly in JSON format."},
-            {"role": "user", "content": prompt}
-        ],
-        model="llama-3.3-70b-versatile",
-        response_format={"type": "json_object"}
-    )
-    return json.loads(completion.choices[0].message.content)
+    try:
+        completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "You are a Senior Business Intelligence Analyst. Output strictly in JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
+        return json.loads(completion.choices[0].message.content)
+    except Exception as e:
+        print(f"LLM API Error: {e}")
+        # Return a fallback format that contains keys expected by all endpoints to prevent frontend crashes
+        return {
+            "name": "Error processing data",
+            "bio": "The AI service encountered an issue.",
+            "sentiment": "Neutral",
+            "sentiment_trend": [{"date": "Today", "score": 50}],
+            "features_in_period": [],
+            "general_latest_updates": ["Could not fetch updates."],
+            "swot": {"strengths": [], "weaknesses": [], "opportunities": [], "threats": []},
+            "next_predicted_move": "N/A",
+            "strategic_gap": "N/A",
+            "overview": {},
+            "products": {},
+            "recent_updates": [],
+            "business_model": {},
+            "maintenance_tips": [f"AI Error: {str(e)}"]
+        }
 
 # --- Endpoints ---
 last_news_fetch = None
