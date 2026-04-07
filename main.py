@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 # Configuration
-GROQ_API_KEY = "ENTER-YOUR-API-KEY" 
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=GROQ_API_KEY)
 
 class CompanyProfile(BaseModel):
