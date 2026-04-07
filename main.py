@@ -77,12 +77,12 @@ def ai_json_call(prompt: str):
         print(f"LLM API Error: {e}")
         # Return a fallback format that contains keys expected by all endpoints to prevent frontend crashes
         return {
-            "name": "Error processing data",
-            "bio": "The AI service encountered an issue.",
+            "name": "API Connection Error",
+            "bio": f"Error details: {str(e)}",
             "sentiment": "Neutral",
             "sentiment_trend": [{"date": "Today", "score": 50}],
             "features_in_period": [],
-            "general_latest_updates": ["Could not fetch updates."],
+            "general_latest_updates": [f"Error Exception: {str(e)}"],
             "swot": {"strengths": [], "weaknesses": [], "opportunities": [], "threats": []},
             "next_predicted_move": "N/A",
             "strategic_gap": "N/A",
